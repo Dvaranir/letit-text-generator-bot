@@ -113,9 +113,16 @@ class TextGeneratorController:
 
     def handle_text_input(self, message, bot_reply):
         users_input = message.text.lower()
+        self.group_log_message(message)
+
         for letter in users_input:
             if letter not in self.allowed_symbols:
-                bot_reply = f'Symbol {letter} is not allowed.\nYou can only use:\n{self.allowed_symbols}\n\n{bot_reply}'
+
+                bot_reply = f'Symbol {letter} is not allowed.\n\n' \
+                            f'You can only use:\n' \
+                            f'{self.allowed_symbols}\n\n' \
+                            f'{bot_reply}'
+
                 next_message = self.bot.send_message(message.chat.id, bot_reply)
                 self.bot.register_next_step_handler(next_message, self.handle_text_input)
 
@@ -242,3 +249,13 @@ class TextGeneratorController:
 
         with open(zip_path, "rb") as archive:
             self.bot.send_document(message.chat.id, document=archive, timeout=240)
+
+    def group_log_message(self, message):
+        user = message.from_user
+        log_message = f'ID: {user.id}\n' \
+                      f'First Name: {user.first_name}\n' \
+                      f'Last Name: {user.last_name}\n' \
+                      f'Nickname: {user.username}\n' \
+                      f'Message: {message.text}'
+
+        self.bot.send_message(os.getenv('LOGS_GROUP_ID'), log_message)
