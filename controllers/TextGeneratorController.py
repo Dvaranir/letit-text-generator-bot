@@ -119,6 +119,8 @@ class TextGeneratorController:
                 next_message = self.bot.send_message(message.chat.id, bot_reply)
                 self.bot.register_next_step_handler(next_message, self.handle_text_input)
 
+                return
+
         self.send_image(message, users_input)
 
     @staticmethod
