@@ -107,7 +107,6 @@ class TextGeneratorController:
 
     def get_text_input(self, call):
         message = call.message
-        print(message)
         bot_reply = 'Type some words:\n'
         next_message = self.bot.send_message(message.chat.id, bot_reply)
         self.bot.register_next_step_handler(next_message, self.handle_text_input)
