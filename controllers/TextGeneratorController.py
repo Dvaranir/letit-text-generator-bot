@@ -109,13 +109,13 @@ class TextGeneratorController:
         message = call.message
         bot_reply = 'Type some words:\n'
         next_message = self.bot.send_message(message.chat.id, bot_reply)
-        self.bot.register_next_step_handler(next_message, self.handle_text_input)
+        self.bot.register_next_step_handler(next_message, self.handle_text_input, bot_reply)
 
-    def handle_text_input(self, message):
+    def handle_text_input(self, message, bot_reply):
         users_input = message.text.lower()
         for letter in users_input:
             if letter not in self.allowed_symbols:
-                bot_reply = f'Symbol {letter} is not allowed.\nYou can only use:\n{self.allowed_symbols}\n'
+                bot_reply = f'Symbol {letter} is not allowed.\nYou can only use:\n{self.allowed_symbols}\n\n{bot_reply}'
                 next_message = self.bot.send_message(message.chat.id, bot_reply)
                 self.bot.register_next_step_handler(next_message, self.handle_text_input)
 
