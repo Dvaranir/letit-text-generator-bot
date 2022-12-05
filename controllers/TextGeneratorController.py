@@ -139,7 +139,16 @@ class TextGeneratorController:
         elif number == 2:
             return "third"
         else:
-            return "forth"
+            return "forth"\
+
+    @staticmethod
+    def choose_font_style(number):
+        if number == 0:
+            return " "
+        elif number == 1:
+            return "bold"
+        else:
+            return "italic"
 
     def generate_classes(self, have_symbol):
         classes = {}
@@ -149,9 +158,16 @@ class TextGeneratorController:
         else:
             random_font = random.randint(0, 1)
 
+        if random_font == 0:
+            random_font_style = random.randint(0, 1)
+        else:
+            random_font_style = random.randint(0, 2)
+
         random_color = random.randint(0, 3)
+
         classes['font'] = self.choose_class(random_font) + "-font"
         classes['color'] = self.choose_class(random_color) + "-color"
+        classes['font-style'] = self.choose_font_style(random_font_style)
 
         return classes
 
@@ -174,7 +190,7 @@ class TextGeneratorController:
 
         filled_template = filled_template.replace("!!LETTER!!", replacing_symbol.upper())
 
-        all_classes += f"{classes['font']} {classes['color']}"
+        all_classes += f"{classes['font']} {classes['color']} {classes['font-style']}"
 
         filled_template = filled_template.replace('!!CLASSES!!', all_classes)
 
@@ -249,6 +265,8 @@ class TextGeneratorController:
         file_path = image_object['path'] + image_object['extension']
         with open(file_path, "rb") as file:
             self.bot.send_document(message.chat.id, document=file, timeout=240)
+
+        self.controller.show_buttons(message.chat.id)
 
     def group_log_message(self, message):
         try:
