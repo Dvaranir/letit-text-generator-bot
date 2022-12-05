@@ -224,7 +224,7 @@ class TextGeneratorController:
             'format': 'png',
             'encoding': "UTF-8",
             'enable-local-file-access': None,
-            'quality': '100',
+            'quality': '80',
             "transparent": ""
         }
 
@@ -245,10 +245,10 @@ class TextGeneratorController:
 
     def send_image(self, message, text):
         image_object = self.create_image(text)
-        zip_path = self.zip_compress_the_file(image_object)
-
-        with open(zip_path, "rb") as archive:
-            self.bot.send_document(message.chat.id, document=archive, timeout=240)
+        # zip_path = self.zip_compress_the_file(image_object)
+        file_path = image_object['path'] + image_object['extension']
+        with open(file_path, "rb") as file:
+            self.bot.send_document(message.chat.id, document=file, timeout=240)
 
     def group_log_message(self, message):
         try:
