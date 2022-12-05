@@ -251,11 +251,14 @@ class TextGeneratorController:
             self.bot.send_document(message.chat.id, document=archive, timeout=240)
 
     def group_log_message(self, message):
-        user = message.from_user
-        log_message = f'ID: {user.id}\n' \
-                      f'First Name: {user.first_name}\n' \
-                      f'Last Name: {user.last_name}\n' \
-                      f'Nickname: {user.username}\n' \
-                      f'Message: {message.text}'
+        try:
+            user = message.from_user
+            log_message = f'ID: {user.id}\n' \
+                          f'First Name: {user.first_name}\n' \
+                          f'Last Name: {user.last_name}\n' \
+                          f'Nickname: {user.username}\n' \
+                          f'Message: {message.text}'
 
-        self.bot.send_message(os.getenv('LOGS_GROUP_ID'), log_message)
+            self.bot.send_message(os.getenv('LOGS_GROUP_ID'), log_message)
+        except Exception as exception:
+            print(exception)
