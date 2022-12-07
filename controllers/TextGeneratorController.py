@@ -263,30 +263,19 @@ class TextGeneratorController:
 
         return image_object
 
-    def zip_compress_the_file(self, image_object):
-        zip_path = f'{image_object["path"]}.zip'
-        image_path = f'{image_object["path"]}{image_object["extension"]}'
-
-        compression = zipfile.ZIP_DEFLATED
-        with zipfile.ZipFile(zip_path, 'w', compression=compression, compresslevel=9) as zip_file:
-            zip_file.write(image_path, os.path.basename(image_path))
-        os.remove(image_path)
-
-        return zip_path
-
     def send_image(self, message, text):
         image_object = self.create_image(text, message.chat.id)
-        # zip_path = self.zip_compress_the_file(image_object)
         file_path = image_object['path'] + image_object['extension']
         with open(file_path, "rb") as file:
             self.bot.send_document(message.chat.id, document=file, timeout=240)
+        os.remove(file_path)
 
-    def toggle_stroke(self, id):
+    def toggle_stroke(self, chat_id):
         try:
-            self.stroke_active[id] = not self.stroke_active[id]
-            print(self.stroke_active[id])
+            self.stroke_active[chat_id] = not self.stroke_active[chat_id]
+            print(self.stroke_active[chat_id])
         except Exception as exception:
-            self.stroke_active[id] = False
+            self.stroke_active[chat_id] = False
             print(f"toggle_stroke\n{exception}")
 
     def group_log_message(self, message):

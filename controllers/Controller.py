@@ -36,16 +36,23 @@ class Controller:
         def start(message):
             self.show_buttons(message.chat.id)
 
+    def get_stroke_btn_text(self, chat_id):
+        try:
+            if self.text_generator_controller.stroke_active[chat_id]:
+                return "Disable stroke"
+            else:
+                return "Enable stroke"
+        except Exception as exception:
+            self.text_generator_controller.toggle_stroke(chat_id)
+            print(f"show_buttons\n{exception}")
+            return "Enable stroke"
+
     def show_buttons(self, chat_id):
-        button_generate_text = self.types.InlineKeyboardButton('Generate Text', callback_data='generate_text')
+        button_generate_text = self.types.InlineKeyboardButton('Generate Text x1', callback_data='generate_text')
         button_generate_text_5 = self.types.InlineKeyboardButton('Generate Text x5', callback_data='generate_text_5')
         button_generate_text_10 = self.types.InlineKeyboardButton('Generate Text x10', callback_data='generate_text_10')
 
-        if self.text_generator_controller.stroke_active[chat_id]:
-            stroke_button_text = "Disable stroke"
-        else:
-            stroke_button_text = "Enable stroke"
-
+        stroke_button_text = self.get_stroke_btn_text(chat_id)
         button_toggle_stroke = self.types.InlineKeyboardButton(stroke_button_text, callback_data='toggle_stroke')
 
         keyboard = self.types.InlineKeyboardMarkup()
