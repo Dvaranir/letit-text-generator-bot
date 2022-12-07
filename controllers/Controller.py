@@ -38,10 +38,22 @@ class Controller:
 
     def show_buttons(self, chat_id):
         button_generate_text = self.types.InlineKeyboardButton('Generate Text', callback_data='generate_text')
+        button_generate_text_5 = self.types.InlineKeyboardButton('Generate Text x5', callback_data='generate_text_5')
+        button_generate_text_10 = self.types.InlineKeyboardButton('Generate Text x10', callback_data='generate_text_10')
+
+        if self.text_generator_controller.stroke_active[chat_id]:
+            stroke_button_text = "Disable stroke"
+        else:
+            stroke_button_text = "Enable stroke"
+
+        button_toggle_stroke = self.types.InlineKeyboardButton(stroke_button_text, callback_data='toggle_stroke')
 
         keyboard = self.types.InlineKeyboardMarkup()
 
         keyboard.add(button_generate_text)
+        keyboard.add(button_generate_text_5)
+        keyboard.add(button_generate_text_10)
+        keyboard.add(button_toggle_stroke)
 
         controls_message = "Functions:"
 
@@ -52,3 +64,11 @@ class Controller:
         def callback_query(call):
             if call.data == "generate_text":
                 self.text_generator_controller.get_text_input(call)
+            elif call.data == "generate_text_5":
+                self.text_generator_controller.get_text_input(call, send_times=5)
+            elif call.data == "generate_text_10":
+                self.text_generator_controller.get_text_input(call, send_times=10)
+            elif call.data == "toggle_stroke":
+                chat_id = call.message.chat.id
+                self.text_generator_controller.toggle_stroke(chat_id)
+                self.show_buttons(chat_id)

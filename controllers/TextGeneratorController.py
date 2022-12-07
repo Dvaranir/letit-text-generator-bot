@@ -6,12 +6,13 @@ import zipfile
 from uuid import uuid4
 
 
-
 class TextGeneratorController:
 
     def __init__(self, controller):
         self.controller = controller
         self.bot = controller.bot
+
+        self.stroke_active = {}
 
         self.english_alphabet = "abcdefghijklmnopqrstuvwxyz"
         self.russian_alphabet = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"
@@ -22,14 +23,14 @@ class TextGeneratorController:
             "b": [["8", " "], ["/3", " "]],
             "c": [["¢", " "], ["©", " "], ["(", " "]],
             "d": [["[)", " "], ["|}", " "], ["|)", " "]],
-            "e": [["€", " "]],
+            "e": [["€", " "], ["3", "flip-horizontal"]],
             "f": [["₤", " "]],
             "g": [["6", " "], ["9", " "]],
             "h": [["|-|", " "], ["/-/", " "], ["#", " "], ["|~|", " "], ["]-[", " "], [")-(", " "]],
             "i": [["1", " "], ["!", " "]],
             "j": [[",_|", " "], ["]", " "]],
             "k": [["|{ ", " "], ["[{", " "], ["|<", " "]],
-            "l": [["1", " "], ["|_", " "]],
+            "l": [["1", " "], ["|_", " "], ["7", "flip-full"]],
             "m": [["|\\/|", " "], ["/\\/\\", " "], ["/V\\", " "]],
             "n": [["|\\|", " "], ["/\\/", " "], ["И", " "]],
             "o": [["0", " "], ["[]", " "], ["()", " "], ["Ø", " "]],
@@ -49,7 +50,7 @@ class TextGeneratorController:
             "в": [["8", " "]],
             "г": [["r", " "]],
             "д": [["|)", " "]],
-            "е": [["€", " "]],
+            "е": [["€", " "], ["3", "flip-horizontal"]],
             # "ё": "",
             "ж": [["}|{", " "], ["]|[", " "]],
             "з": [["3", " "]],
@@ -105,13 +106,13 @@ class TextGeneratorController:
 
         return html_template
 
-    def get_text_input(self, call):
+    def get_text_input(self, call, send_times=1):
         message = call.message
         bot_reply = 'Type some words:\n'
         next_message = self.bot.send_message(message.chat.id, bot_reply)
-        self.bot.register_next_step_handler(next_message, self.handle_text_input, bot_reply)
+        self.bot.register_next_step_handler(next_message, self.handle_text_input, bot_reply, send_times)
 
-    def handle_text_input(self, message, bot_reply):
+    def handle_text_input(self, message, bot_reply, send_times=1):
         users_input = message.text.lower()
         self.group_log_message(message)
 
@@ -124,11 +125,17 @@ class TextGeneratorController:
                             f'{bot_reply}'
 
                 next_message = self.bot.send_message(message.chat.id, bot_reply)
-                self.bot.register_next_step_handler(next_message, self.handle_text_input)
+                self.bot.register_next_step_handler(next_message, self.handle_text_input, bot_reply, send_times)
 
                 return
 
-        self.send_image(message, users_input)
+        while True:
+            if send_times <= 0:
+                break
+            self.send_image(message, users_input)
+            send_times -= 1
+
+        self.controller.show_buttons(message.chat.id)
 
     @staticmethod
     def choose_class(number):
@@ -139,7 +146,7 @@ class TextGeneratorController:
         elif number == 2:
             return "third"
         else:
-            return "forth"\
+            return "forth"
 
     @staticmethod
     def choose_font_style(number):
@@ -171,7 +178,7 @@ class TextGeneratorController:
 
         return classes
 
-    def fill_template(self, classes, letter, template):
+    def fill_template(self, classes, letter, template, chat_id):
         filled_template = template
         all_classes = ""
         if classes['font'] == 'third-font':
@@ -189,14 +196,22 @@ class TextGeneratorController:
             replacing_symbol = letter
 
         filled_template = filled_template.replace("!!LETTER!!", replacing_symbol.upper())
+        stroke = ""
+        try:
+            if self.stroke_active[chat_id]:
+                stroke = "stroke"
+        except Exception as exception:
+            print(f"fill_template\n{Exception}")
 
-        all_classes += f"{classes['font']} {classes['color']} {classes['font-style']}"
+
+
+        all_classes += f"{classes['font']} {classes['color']} {classes['font-style']} {stroke}"
 
         filled_template = filled_template.replace('!!CLASSES!!', all_classes)
 
         return filled_template
 
-    def build_html(self, text):
+    def build_html(self, text, chat_id):
         user_input = text
         html_template = self.load_templates()
 
@@ -216,7 +231,7 @@ class TextGeneratorController:
             else:
                 classes = self.generate_classes(have_symbol=False)
 
-            filled_template = self.fill_template(classes, letter, html_template['element'])
+            filled_template = self.fill_template(classes, letter, html_template['element'], chat_id)
 
             html += filled_template
 
@@ -224,8 +239,8 @@ class TextGeneratorController:
 
         return html
 
-    def create_image(self, text):
-        html = self.build_html(text)
+    def create_image(self, text, chat_id):
+        html = self.build_html(text, chat_id)
 
         image_id = str(uuid4())[:13]
         image_name = f"letit-text-{image_id}"
@@ -260,13 +275,19 @@ class TextGeneratorController:
         return zip_path
 
     def send_image(self, message, text):
-        image_object = self.create_image(text)
+        image_object = self.create_image(text, message.chat.id)
         # zip_path = self.zip_compress_the_file(image_object)
         file_path = image_object['path'] + image_object['extension']
         with open(file_path, "rb") as file:
             self.bot.send_document(message.chat.id, document=file, timeout=240)
 
-        self.controller.show_buttons(message.chat.id)
+    def toggle_stroke(self, id):
+        try:
+            self.stroke_active[id] = not self.stroke_active[id]
+            print(self.stroke_active[id])
+        except Exception as exception:
+            self.stroke_active[id] = False
+            print(f"toggle_stroke\n{exception}")
 
     def group_log_message(self, message):
         try:
