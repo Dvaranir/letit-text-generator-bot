@@ -17,7 +17,7 @@ class TextGeneratorController:
         self.english_alphabet = "abcdefghijklmnopqrstuvwxyz"
         self.russian_alphabet = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"
         self.numbers = "1234567890 "
-        self.symbols = "\"',{}[]?!"
+        self.symbols = "\"',.{}[]()<>/?!_-=+#%$^&*"
         self.symbol_letters = {
             "a": [["4", " "], ["@", " "], ["/-\\", " "], ["/\\", " "]],
             "b": [["8", " "], ["/3", " "]],
