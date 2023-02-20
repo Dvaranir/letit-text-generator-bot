@@ -13,6 +13,7 @@ class TextGeneratorController:
         self.bot = controller.bot
 
         self.stroke_active = {}
+        self.text_align = {}
 
         self.english_alphabet = "abcdefghijklmnopqrstuvwxyz"
         self.russian_alphabet = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"
@@ -200,10 +201,9 @@ class TextGeneratorController:
         try:
             if self.stroke_active[chat_id]:
                 stroke = "stroke"
+
         except Exception as exception:
             print(f"fill_template\n{Exception}")
-
-
 
         all_classes += f"{classes['font']} {classes['color']} {classes['font-style']} {stroke}"
 
@@ -218,8 +218,16 @@ class TextGeneratorController:
         current_directory = os.getcwd()
         path_to_currencies_view = current_directory + "/views"
 
+        try:
+            self.text_align[chat_id]
+        except:
+            self.text_align[chat_id] = 'text-align-left'
+
         html = html_template['head']\
-            .replace('!!PATH_TO_VIEWS!!', path_to_currencies_view)
+            .replace('!!PATH_TO_VIEWS!!', path_to_currencies_view)\
+            .replace('!!CONTAINER_CLASSES!!', self.text_align[chat_id])
+
+        print(html)
 
         for letter in user_input:
             if letter == " ":
@@ -277,6 +285,9 @@ class TextGeneratorController:
         except Exception as exception:
             self.stroke_active[chat_id] = False
             print(f"toggle_stroke\n{exception}")
+
+    def change_text_align(self, chat_id, tag):
+        self.text_align[chat_id] = tag
 
     def group_log_message(self, message):
         try:
